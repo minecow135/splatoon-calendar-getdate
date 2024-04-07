@@ -1,0 +1,65 @@
+const axios = require('axios');
+const { JSDOM } = require('jsdom');
+const { nanoid } = require('nanoid');
+const mysql = require('mysql2');
+
+function getMonthFromString(mon){
+    return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
+}
+
+sql = {
+    host     : 'localhost',
+    user     : 'webTest',
+    password : 'awdfthdwa',
+    database : 'splatCal'
+}
+
+sqlconnection = mysql.createConnection(sql);
+
+sqlconnection.connect((err) => {
+    if (err) throw err;
+    console.log('MySQL connected');
+});
+
+axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
+    // handle success
+    let html = (new JSDOM(response.data));
+    let dateAll = html.window.document.querySelectorAll(".splatfestTimer");
+    let placeAll = html.window.document.querySelectorAll(".splatfest div > div > div.bubbleboxbg-lighter");
+    let teamsAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > span > a");
+    let teamsLinkAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > span > a");
+
+    let date = dateAll[0].textContent;
+    let descData = [];
+    let count = 0;
+
+    for (let team of teamsAll) {
+        descData.push([placeAll[count].textContent, team.textContent, teamsLinkAll[count].getAttribute('href')]);
+        
+        count ++;
+    };
+
+    let description = "";
+    for (const teams2 of descData) {
+        description += teams2[0] + "\n" + teams2[1] + "\n" + "https://splatoonwiki.org" + teams2[2] + "\n\n";
+    };
+   
+    let parts = date.split(" ");
+
+    let event = "splatfest";
+    let title = "Splatfest";
+    let startDate = new Date(Date.UTC(new Date().getFullYear(), getMonthFromString(parts[0])-1, parseInt(parts[1])));
+    let created = new Date(Date.now());
+    let duration = "2";
+    let uid = nanoid() + "@splatfest.awdawd.eu";
+
+    if (startDate != "Invalid Date") {
+        var sql = 'INSERT INTO `splatCal` (`event`, `title`, `description`, `startDate`, `created`, `duration`, `uid`) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        sqlconnection.query(sql, [ event, title, description, startDate, created, duration, uid ], function (error, insertResult) {
+            if (error) throw error;
+            //console.log(insertResult);
+        });
+    } else {
+        console.log("No splatfest announced")
+    };
+});
