@@ -8,7 +8,7 @@ function getMonthFromString(mon){
 }
 
 sql = {
-    host     : 'localhost',
+    host     : '172.21.20.52',
     user     : 'webTest',
     password : 'awdfthdwa',
     database : 'splatCal'
@@ -54,10 +54,18 @@ axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then
     let uid = nanoid() + "@splatfest.awdawd.eu";
 
     if (startDate != "Invalid Date") {
-        var sql = 'INSERT INTO `splatCal` (`event`, `title`, `description`, `startDate`, `created`, `duration`, `uid`) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        sqlconnection.query(sql, [ event, title, description, startDate, created, duration, uid ], function (error, insertResult) {
+        var sqlGetDate = 'SELECT COUNT(id) AS `count` FROM `splatCal` WHERE `startDate` = ?'
+        sqlconnection.query(sqlGetDate, [ startDate ], function (error, GetCount) {
             if (error) throw error;
-            //console.log(insertResult);
+            if (GetCount[0].count === 0) {   
+                var sqlInsert = 'INSERT INTO `splatCal` (`event`, `title`, `description`, `startDate`, `created`, `duration`, `uid`) VALUES (?, ?, ?, ?, ?, ?, ?)';
+                sqlconnection.query(sqlInsert, [ event, title, description, startDate, created, duration, uid ], function (error, insertResult) {
+                    if (error) throw error;
+                    //console.log(insertResult);
+                });
+            } else {
+                console.log("already inserted")
+            }
         });
     } else {
         console.log("No splatfest announced")
