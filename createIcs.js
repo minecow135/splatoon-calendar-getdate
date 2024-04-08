@@ -34,7 +34,7 @@ sqlconnection.query(sqlGetCalData, [ eventType ], function (error, events) {
             let start = [ event.startDate.getFullYear(), event.startDate.getMonth()+1, event.startDate.getDate(), event.startDate.getHours(), event.startDate.getMinutes() ]
             let duration = { days: event.duration }
             let uid = event.uid
-            let created = [ event.created.getFullYear(), event.created.getMonth(), event.created.getDate(), event.created.getHours(), event.created.getMinutes() ]
+            let created = [ event.created.getFullYear(), event.created.getMonth()+1, event.created.getDate(), event.created.getHours(), event.created.getMinutes() ]
 
             eventArr.push({ title, description, busyStatus, start, duration, uid, created })
         }
