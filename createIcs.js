@@ -3,7 +3,7 @@ const ics = require('ics');
 const { writeFileSync } = require('fs');
 
 // const sql = require('./db.js');
-sql = {
+const sql = {
     HOST: process.env.DB_HOST,
     USER: process.env.DB_USER,
     PASSWORD: process.env.DB_PASSWORD,
