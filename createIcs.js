@@ -47,7 +47,7 @@ sqlconnection.query(sqlGetCalData, [ eventType ], function (error, events) {
 
         console.log(value)
         
-        writeFileSync(`${__dirname}/splatfest.ics`, value)
+        writeFileSync(`${__dirname}/ics/splatfest.ics`, value)
     } else {
         console.log("no splatfests saved")
     }
