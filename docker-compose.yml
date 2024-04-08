@@ -7,7 +7,7 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      - /var/www/splatCal/:/home/node/app
+      - /var/www/splatCal:/home/node/app
     expose:
       - "8081"
     ports: # use if it is necessary to expose the container to the host machine
@@ -19,4 +19,4 @@ services:
     ports:
       - "8104:80"    #this line maps your pc port to the container port
     volumes:
-      - /var/www/splatCal/ics/:/var/www/html    #this line maps the content of ./html in your pc to the /var/www/html of the container
+      - /var/www/splatCal/ics:/var/www/html    #this line maps the content of ./html in your pc to the /var/www/html of the container
