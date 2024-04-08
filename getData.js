@@ -4,6 +4,12 @@ const { nanoid } = require('nanoid');
 const mysql = require('mysql2');
 
 // const sql = require('./db.js')
+sql = {
+    HOST: process.env.DB_HOST,
+    USER: process.env.DB_USER,
+    PASSWORD: process.env.DB_PASSWORD,
+    DB: process.env.DB_NAME,
+}
 
 function getMonthFromString(mon){
     return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
