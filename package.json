@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,7 +22,6 @@
     "ics": "^3.7.2",
     "jsdom": "^24.0.0",
     "mysql2": "^3.9.3",
-    "node-cron": "^3.0.3",
-    "nodemon": "^3.1.0"
+    "node-cron": "^3.0.3"
   }
 }
