@@ -4,10 +4,6 @@ const { writeFileSync } = require('fs');
 
 const sql = require('./db.js');
 
-function getMonthFromString(mon){
-    return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
-}
-
 sqlconnection = mysql.createConnection(sql);
 
 sqlconnection.connect((err) => {
