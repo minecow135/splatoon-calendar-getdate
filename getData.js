@@ -9,13 +9,6 @@ function getMonthFromString(mon){
     return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
 }
 
-sql = {
-    host     : 'localhost',
-    user     : 'webTest',
-    password : 'awdfthdwa',
-    database : 'splatCal'
-}
-
 sqlconnection = mysql.createConnection(sql);
 
 sqlconnection.connect((err) => {
