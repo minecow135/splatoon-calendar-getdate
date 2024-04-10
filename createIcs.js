@@ -10,9 +10,6 @@ const sql = {
     database: process.env.DB_NAME,
 }
 
-function getMonthFromString(mon){
-    return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
-}
 
 sqlconnection = mysql.createConnection(sql);
 
