@@ -38,7 +38,7 @@ function createIcs() {
 
             console.log(value)
             
-            writeFileSync(`${__dirname}/ics/splatfest.ics`, value)
+            writeFileSync(`${__dirname}/../ics/splatfest.ics`, value)
         } else {
             console.log("no splatfests saved")
         }
