@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 
-const getData = require ("./getData.js");
-const createIcs = require('./createIcs.js');
+const getData = require ("./src/getData.js");
+const createIcs = require('./src/createIcs.js');
 
 // Run once at the start
 getData()

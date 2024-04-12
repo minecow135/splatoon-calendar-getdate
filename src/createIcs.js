@@ -2,7 +2,7 @@ const mysql = require('mysql2');
 const ics = require('ics');
 const { writeFileSync } = require('fs');
 
-const sql = require('./db.js');
+const sql = require('../db.js');
 
 function createIcs() {
     sqlconnection = mysql.createConnection(sql);

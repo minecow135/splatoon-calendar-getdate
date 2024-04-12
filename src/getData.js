@@ -3,7 +3,7 @@ const { JSDOM } = require('jsdom');
 const { nanoid } = require('nanoid');
 const mysql = require('mysql2');
 
-const sql = require('./db.js')
+const sql = require('../db.js')
 
 function getMonthFromString(mon){
     return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
