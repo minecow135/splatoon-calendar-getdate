@@ -1,7 +1,7 @@
 const cron = require('node-cron');
-
-const getData = require ("./getData.js");
-const createIcs = require('./createIcs.js');
+const getData = require ("./src/getData.js");
+const createIcs = require('./src/createIcs.js');
+const discordSend = require('./src/discordSend.js');
 
 sql = {
     HOST: process.env.DB_HOST,
@@ -13,6 +13,8 @@ sql = {
 // Run once at the start
 getData()
 createIcs()
+
+discordSend(0, '0 0 12 * * *')
 
 cron.schedule('0 45 11 * * *', () => {
     getData()
