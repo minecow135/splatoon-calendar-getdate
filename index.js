@@ -3,13 +3,6 @@ const getData = require ("./src/getData.js");
 const createIcs = require('./src/createIcs.js');
 const discordSend = require('./src/discordSend.js');
 
-sql = {
-    HOST: process.env.DB_HOST,
-    USER: process.env.DB_USER,
-    PASSWORD: process.env.DB_PASSWORD,
-    DB: process.env.DB_NAME,
-}
-
 // Run once at the start
 getData()
 createIcs()
@@ -23,4 +16,3 @@ cron.schedule('0 45 11 * * *', () => {
 cron.schedule('0 0 12 * * *', () => {
     createIcs()
 });
-
