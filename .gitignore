@@ -354,6 +354,7 @@ markdown-cheat-sheet.md
 package-lock.json
 db.php
 discordconfig.php
+discordconfig.js
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
