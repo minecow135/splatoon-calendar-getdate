@@ -17,7 +17,7 @@ function getData() {
         console.log('MySQL connected');
     });
 
-    
+
     axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
         // handle success
         let html = (new JSDOM(response.data));
@@ -25,7 +25,9 @@ function getData() {
         let placeAll = html.window.document.querySelectorAll(".splatfest div > div > div.bubbleboxbg-lighter");
         let teamsAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > span > a");
         let teamsLinkAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > span > a");
+        let imgAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > div img");
 
+        console.log("https:" + imgAll[0].getAttribute('src'));
         let date = dateAll[0].textContent;
         let descData = [];
         let count = 0;
@@ -40,10 +42,11 @@ function getData() {
                 placeAll[count].textContent,
                 "https://splatoonwiki.org" + teamsLinkAll[count].getAttribute('href'),
                 teams,
+                "https:" + imgAll[count].getAttribute('src'),
             ]);
             count ++;
         };
-    
+
         let parts = date.split(" ");
 
         let event = "splatfest";
@@ -57,7 +60,7 @@ function getData() {
             var sqlGetDate = 'SELECT COUNT(id) AS `count` FROM `splatCal` WHERE `startDate` = ?'
             sqlconnection.query(sqlGetDate, [ startDate ], function (error, GetCount) {
                 if (error) throw error;
-                if (GetCount[0].count === 0) {   
+                if (GetCount[0].count === 0) {
                     var sqlInsert = 'INSERT INTO `splatCal` (`event`, `title`, `startDate`, `created`, `duration`, `uid`) VALUES (?, ?, ?, ?, ?, ?)';
                     sqlconnection.query(sqlInsert, [ event, title, startDate, created, duration, uid ], function (error, insertResult) {
                         if (error) throw error;
@@ -66,7 +69,7 @@ function getData() {
                         for (const desc of descData) {
                             let descCount = 1
                             var sqlInsertDesc = 'INSERT INTO `descData` (`CalId`, `locationNum`, `dataCalId`, `DataTypeId`, `data`) VALUES (?, ?, ?, ?, ?)';
-                            
+
                             sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 1, desc[0] ], function (error, insertResult) {
                                 if (error) throw error;
                                 console.log("Name inserted")
@@ -95,9 +98,14 @@ function getData() {
                                 descCount ++;
                             }
 
+                            sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 5, desc[4] ], function (error, insertResult) {
+                                if (error) throw error;
+                                console.log("image link inserted")
+                            });
+                            descCount ++;
+
                             locationNum ++;
                         }
-                        
                     });
                 } else {
                     console.log("already inserted")
