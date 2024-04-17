@@ -27,9 +27,6 @@ sqlconnection.connect((err) => {
 //client.login(token);
 
 async function discordSend() {
-    await aaa();
-}
-async function aaa() {
     console.log("AAAAAAAAAAAAAAA")
         console.log("Discord ready");
     eventType = "splatfest";
