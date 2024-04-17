@@ -27,7 +27,6 @@ function getData() {
         let teamsLinkAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > span > a");
         let imgAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > div img");
 
-        console.log("https:" + imgAll[0].getAttribute('src'));
         let date = dateAll[0].textContent;
         let descData = [];
         let count = 0;
