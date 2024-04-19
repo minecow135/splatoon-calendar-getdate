@@ -25,12 +25,9 @@ sqlconnection.connect((err) => {
 
 // Log in to Discord with your client's token
 //client.login(token);
-
 async function discordSend() {
-    console.log("AAAAAAAAAAAAAAA")
-        console.log("Discord ready");
     eventType = "splatfest";
-    var sqlGetData = 'SELECT `id`, `title`, `startDate`, `duration`  FROM `splatCal` WHERE `event` = ?';
+    var sqlGetData = 'SELECT `id`, `title`, `startDate`, `endDate`  FROM `splatCal` WHERE `event` = ?';
     sqlconnection.query(sqlGetData, [ eventType ], function (error, events) {
         if (error) throw error;
         if (events && events.length > 0) {
@@ -60,9 +57,9 @@ async function discordSend() {
 
                                 let title = event.title;
                                 let start = event.startDate
-                                let duration = { days: event.duration };
+                                let end = event.endDate
 
-                                eventArr.push({ title, description, start, duration, });
+                                eventArr.push({ title, description, start, end, });
                             }
                             let event = eventArr[0];
                             let fields = [];
@@ -75,7 +72,7 @@ async function discordSend() {
                                 }
                             }
 
-                            const description = "<t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f>";
+                            const description = "<t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(event.end).getTime() / 1000) + ":f>";
                             const link = "https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest";
 
                             let count = 0;
@@ -106,7 +103,7 @@ async function discordSend() {
                             }
 
                             client.once(Events.ClientReady, readyClient => {
-console.log("aaa: ", readyClient)
+                                console.log("aaa: ", readyClient)
                                 client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed });
                             });
                             cron.schedule('0 0 12 * * *', () => {
