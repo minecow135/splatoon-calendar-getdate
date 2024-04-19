@@ -109,12 +109,11 @@ async function discordSend() {
 console.log("aaa: ", readyClient)
                                 client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed });
                             });
-                            cron.schedule('0 0 12 * 1 *', () => {
-                                console.log("AAAAAAAAAAAAAAA")
-                                async function test() {
+                            cron.schedule('0 0 12 * * *', () => {
+                                async function sendMsg() {
                                     client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed });
                                 };
-                                test();
+                                sendMsg();
                             });
                         };
                     });
