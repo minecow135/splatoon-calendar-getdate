@@ -106,13 +106,15 @@ async function discordSend() {
                             }
 
                             client.once(Events.ClientReady, readyClient => {
+console.log("aaa: ", readyClient)
                                 client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed });
                             });
-                            cron.schedule('*/30 * * * * *', () => {
+                            cron.schedule('0 0 12 * 1 *', () => {
                                 console.log("AAAAAAAAAAAAAAA")
-                                client.once(readyClient => {
+                                async function test() {
                                     client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed });
-                                });
+                                };
+                                test();
                             });
                         };
                     });
