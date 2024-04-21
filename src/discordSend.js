@@ -2,9 +2,9 @@ const mysql = require('mysql2');
 const cron = require('node-cron');
 const { Client, Events, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
 
-const sql = require('../db.js')
+const sql = require('../db.js');
 const discordconfig = require('../discordconfig.js');
-const token = discordconfig.botToken
+const token = discordconfig.botToken;
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -24,10 +24,31 @@ sqlconnection.connect((err) => {
 });
 
 // Log in to Discord with your client's token
-//client.login(token);
+client.login(token);
+
+function until(conditionFunction) {
+
+    const poll = resolve => {
+        if(conditionFunction()) resolve();
+        else setTimeout(_ => poll(resolve), 500);
+    }
+    return new Promise(poll);
+}
+
+async function sendMsg(SplatCalEmbed, id) {
+    await until(_ => client.readyTimestamp);
+    if (client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed })) {
+        var sqlGetCalData = "INSERT INTO `discordSent` (`id`, `calId`, `sentMessage`) VALUES (NULL, ?, '1')";
+        sqlconnection.query(sqlGetCalData, [ id ], function (error, events) {
+            if (error) throw error;
+            console.log("Message sent!", id);
+        });
+    };
+};
+
 async function discordSend() {
     eventType = "splatfest";
-    var sqlGetData = 'SELECT `id`, `title`, `startDate`, `endDate`  FROM `splatCal` WHERE `event` = ?';
+    var sqlGetData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `discordSent`.`sentMessage` FROM `splatCal` LEFT JOIN `discordSent` ON `discordSent`.`calId` = `splatCal`.`id` WHERE `event` = ? AND `discordSent`.`sentMessage` IS NULL';
     sqlconnection.query(sqlGetData, [ eventType ], function (error, events) {
         if (error) throw error;
         if (events && events.length > 0) {
@@ -44,82 +65,74 @@ async function discordSend() {
                                 let description = [];
                                 for (const descItem of desc) {
                                     if (descItem.calId === event.id) {
-                                        let teamsArr = []
+                                        let teamsArr = [];
                                         for (const team of teams) {
                                             if (team.calId === event.id && team.locationNum === descItem.locationNum) {
-                                                teamsArr.push(team)
+                                                teamsArr.push(team);
                                             };
                                         };
-                                        descItem.teams = teamsArr
-                                        description.push(descItem)
+                                        descItem.teams = teamsArr;
+                                        description.push(descItem);
+                                    };
+                                };
+
+                                let id = event.id;
+                                let title = event.title;
+                                let start = event.startDate;
+                                let end = event.endDate;
+
+                                eventArr.push({ id, title, description, start, end, });
+                            };
+                            for (const event of eventArr) {
+                                let fields = [];
+                                for (const eventRegion of event.description) {
+                                    eventHead = { name: eventRegion.nameData, value: eventRegion.locationData, inline: false };
+                                    fields.push(eventHead);
+                                    for (const team of eventRegion.teams) {
+                                        eventData = { name: team.data, value: "", inline: true };
+                                        fields.push(eventData);
                                     }
                                 }
 
-                                let title = event.title;
-                                let start = event.startDate
-                                let end = event.endDate
+                                const description = "<t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(event.end).getTime() / 1000) + ":f>";
+                                const link = "https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest";
 
-                                eventArr.push({ title, description, start, end, });
-                            }
-                            let event = eventArr[0];
-                            let fields = [];
-                            for (const eventRegion of event.description) {
-                                eventHead = { name: eventRegion.nameData, value: eventRegion.locationData, inline: false };
-                                fields.push(eventHead);
-                                for (const team of eventRegion.teams) {
-                                    eventData = { name: team.data, value: "", inline: true };
-                                    fields.push(eventData);
-                                }
-                            }
+                                let count = 0;
+                                let SplatCalEmbed = []
+                                for (const item of event.description) {
+                                    if (count === 0) {
+                                        SplatCalEmbed.push ({
+                                            color: 0x0099ff,
+                                            title: event.title,
+                                            url: link,
+                                            description: description,
+                                            fields: fields,
+                                            image: {
+                                                url: item.imgData,
+                                            },
+                                        });
+                                    } else {
+                                        SplatCalEmbed.push ({
+                                            url: link,
+                                            image: {
+                                                url: item.imgData,
+                                            },
+                                        });
+                                    };
 
-                            const description = "<t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(event.end).getTime() / 1000) + ":f>";
-                            const link = "https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest";
-
-                            let count = 0;
-                            let SplatCalEmbed = []
-                            for (const item of event.description) {
-                                if (count === 0) {
-                                    SplatCalEmbed.push ({
-                                        color: 0x0099ff,
-                                        title: event.title,
-                                        url: link,
-                                        description: description,
-                                        fields: fields,
-                                        image: {
-                                            url: item.imgData,
-                                        },
-                                    });
-                                }
-                                else {
-                                    SplatCalEmbed.push ({
-                                        url: link,
-                                        image: {
-                                            url: item.imgData,
-                                        },
-                                    })
-                                }
-
-                                count ++;
-                            }
-
-                            client.once(Events.ClientReady, readyClient => {
-                                console.log("aaa: ", readyClient)
-                                client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed });
-                            });
-                            cron.schedule('0 0 12 * * *', () => {
-                                async function sendMsg() {
-                                    client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed });
+                                    count ++;
                                 };
-                                sendMsg();
-                            });
+
+                                sendMsg(SplatCalEmbed, event.id);
+                            };
                         };
                     });
                 };
             });
+        } else {
+            console.log("no new splatfests");
         };
     });
 };
-
-client.login(token);
 
 module.exports = discordSend;
