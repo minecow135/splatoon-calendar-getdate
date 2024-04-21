@@ -13,18 +13,27 @@ async function pullData() {
     webValue = await axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
         // handle success
         let html = (new JSDOM(response.data));
+        let dateAll = html.window.document.querySelectorAll(".splatfestTimer");
         let placeAll = html.window.document.querySelectorAll(".splatfest div > div > div.bubbleboxbg-lighter");
         let teamsAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > span > a");
         let teamsLinkAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > span > a");
         let imgAll = html.window.document.querySelectorAll(".splatfest div div > div.bubbleboxbg-darker > div > div img");
 
-        return { teamsAll, teamsLinkAll, imgAll, placeAll };
+        return { dateAll, teamsAll, teamsLinkAll, imgAll, placeAll };
     });
     return webValue;
 }
 
 async function getInfo() {
-    let { teamsAll, teamsLinkAll, imgAll, placeAll } = await pullData();
+    let { dateAll, teamsAll, teamsLinkAll, imgAll, placeAll } = await pullData();
+
+    let date = dateAll[0].textContent;
+    let parts = date.split(" ");
+
+    let announced = false;
+    if (parts[2]) {
+        announced = true;
+    }
 
     let descData = [];
     let count = 0;
@@ -53,6 +62,7 @@ async function getInfo() {
             "https:" + imgAll[count].getAttribute('src'),
             startDate,
             endDate,
+            announced,
         ]);
         count ++;
     };
@@ -69,7 +79,7 @@ async function InsertData() {
     let created = new Date(Date.now());
     let uid = nanoid() + "@splatfest.awdawd.eu";
 
-    if (startDate != "Invalid Date") {
+    if (descData[0][7]) {
         var sqlGetDate = 'SELECT COUNT(id) AS `count` FROM `splatCal` WHERE `startDate` = ?'
         sqlconnection.query(sqlGetDate, [ startDate ], function (error, GetCount) {
             if (error) throw error;
