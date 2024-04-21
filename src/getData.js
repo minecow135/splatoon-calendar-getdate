@@ -5,10 +5,6 @@ const mysql = require('mysql2');
 
 const sql = require('../db.js');
 
-function getMonthFromString(mon){
-    return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
-}
-
 async function pullData() {
     webValue = await axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
         // handle success
