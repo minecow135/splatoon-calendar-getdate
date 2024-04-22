@@ -4,14 +4,14 @@ const { writeFileSync } = require('fs');
 
 const sql = require('../db.js');
 
+sqlconnection = mysql.createConnection(sql);
+
+sqlconnection.connect((err) => {
+    if (err) throw err;
+    console.log('MySQL connected');
+});
+
 function createIcs() {
-    sqlconnection = mysql.createConnection(sql);
-
-    sqlconnection.connect((err) => {
-        if (err) throw err;
-        console.log('MySQL connected');
-    });
-
     eventType = "splatfest";
     var sqlGetCalData = 'SELECT `id`, `title`, `startDate`, `endDate`, `created`, `uid`  FROM `splatCal` WHERE `event` = ?';
     sqlconnection.query(sqlGetCalData, [ eventType ], function (error, events) {

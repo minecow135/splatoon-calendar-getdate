@@ -5,6 +5,13 @@ const mysql = require('mysql2');
 
 const sql = require('../db.js');
 
+sqlconnection = mysql.createConnection(sql);
+
+sqlconnection.connect((err) => {
+    if (err) throw err;
+    console.log('MySQL connected');
+});
+
 async function pullData() {
     webValue = await axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
         // handle success
@@ -65,7 +72,7 @@ async function getInfo() {
     return descData;
 };
 
-async function InsertData() {
+async function getData() {
     let descData = await getInfo();
 
     let event = "splatfest";
@@ -133,16 +140,6 @@ async function InsertData() {
     } else {
         console.log("No splatfest announced")
     };
-};
-
-async function getData() {
-    sqlconnection = mysql.createConnection(sql);
-
-    sqlconnection.connect((err) => {
-        if (err) throw err;
-        console.log('MySQL connected');
-    });
-    InsertData()
 };
 
 module.exports = getData;
