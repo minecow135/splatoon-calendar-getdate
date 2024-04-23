@@ -34,9 +34,9 @@ async function getInfo() {
     let parts = date.split(" ");
 
     let announced = false;
-    if (parts[2]) {
+    if (dateAll.length != 0) {
         announced = true;
-    }
+    };
 
     let descData = [];
     let count = 0;
@@ -69,20 +69,21 @@ async function getInfo() {
         ]);
         count ++;
     };
-    return descData;
+    let err = { announced };
+    return { descData, err };
 };
 
 async function getData() {
-    let descData = await getInfo();
+    let { descData, err } = await getInfo();
 
-    let event = "splatfest";
-    let title = "Splatfest";
-    let startDate = new Date(descData[0][5]);
-    let endDate = new Date(descData[0][6]);
-    let created = new Date(Date.now());
-    let uid = nanoid() + "@splatfest.awdawd.eu";
+    if (err.announced) {
+        let event = "splatfest";
+        let title = "Splatfest";
+        let startDate = new Date(descData[0][5]);
+        let endDate = new Date(descData[0][6]);
+        let created = new Date(Date.now());
+        let uid = nanoid() + "@splatfest.awdawd.eu";
 
-    if (descData[0][7]) {
         var sqlGetDate = 'SELECT COUNT(id) AS `count` FROM `splatCal` WHERE `startDate` = ?'
         sqlconnection.query(sqlGetDate, [ startDate ], function (error, GetCount) {
             if (error) throw error;
