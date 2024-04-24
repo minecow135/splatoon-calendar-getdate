@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Apr 21, 2024 at 03:32 PM
+-- Generation Time: Apr 23, 2024 at 11:52 AM
 -- Server version: 11.3.2-MariaDB-1:11.3.2+maria~ubu2204
 -- PHP Version: 8.2.8
 
@@ -86,6 +86,18 @@ CREATE TABLE `splatCal` (
   `uid` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `win`
+--
+
+CREATE TABLE `win` (
+  `id` int(11) NOT NULL,
+  `calId` int(11) NOT NULL,
+  `descId` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -118,6 +130,14 @@ ALTER TABLE `splatCal`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `win`
+--
+ALTER TABLE `win`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `winCalId` (`calId`),
+  ADD KEY `winDescId` (`descId`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -146,6 +166,12 @@ ALTER TABLE `splatCal`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `win`
+--
+ALTER TABLE `win`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Constraints for dumped tables
 --
 
@@ -161,6 +187,13 @@ ALTER TABLE `descData`
 --
 ALTER TABLE `discordSent`
   ADD CONSTRAINT `discordSentCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `win`
+--
+ALTER TABLE `win`
+  ADD CONSTRAINT `winCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `winDescId` FOREIGN KEY (`descId`) REFERENCES `descData` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

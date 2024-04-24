@@ -13,6 +13,7 @@ sqlconnection.connect((err) => {
 });
 
 async function pullData() {
+    //webValue = await axios.get("http://172.25.20.41/splatoon-calendar/ics/a/Main%20Page_Splatfest%20-%20Inkipedia,%20the%20Splatoon%20wiki.htm").then(function (response) {
     webValue = await axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
         // handle success
         let html = (new JSDOM(response.data));
@@ -30,9 +31,6 @@ async function pullData() {
 async function getInfo() {
     let { dateAll, teamsAll, teamsLinkAll, imgAll, placeAll } = await pullData();
 
-    let date = dateAll[0].textContent;
-    let parts = date.split(" ");
-
     let announced = false;
     if (dateAll.length != 0) {
         announced = true;
@@ -42,15 +40,17 @@ async function getInfo() {
     let count = 0;
 
     for (let team of teamsAll) {
-        let { name, startDate, endDate } = await axios.get("https://splatoonwiki.org" + teamsLinkAll[count].getAttribute('href')).then(function (regionResponse) {
+        let { name, startDate, endDate, winner } = await axios.get("https://splatoonwiki.org" + teamsLinkAll[count].getAttribute('href')).then(function (regionResponse) {
             let regionHtml = (new JSDOM(regionResponse.data));
             let nameAll = regionHtml.window.document.querySelectorAll("div > b > small");
             let startEndDate = regionHtml.window.document.querySelectorAll("td .mw-formatted-date");
+            let winner = regionHtml.window.document.querySelectorAll(".tagInfobox tr:nth-child(6) > td:nth-child(2)");
 
             let name = nameAll[0].textContent;
             let startDate = startEndDate[0].textContent;
             let endDate = startEndDate[1].textContent;
-            return { name, startDate, endDate };
+
+            return { name, startDate, endDate, winner };
         })
 
         let teams = []
@@ -65,7 +65,7 @@ async function getInfo() {
             "https:" + imgAll[count].getAttribute('src'),
             startDate,
             endDate,
-            announced,
+            winner,
         ]);
         count ++;
     };
@@ -94,7 +94,7 @@ async function getData() {
                     console.log("Splatfest Inserted");
                     let locationNum = 1;
                     for (const desc of descData) {
-                        let descCount = 1
+                        let descCount = 1;
                         var sqlInsertDesc = 'INSERT INTO `descData` (`CalId`, `locationNum`, `dataCalId`, `DataTypeId`, `data`) VALUES (?, ?, ?, ?, ?)';
 
                         sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 1, desc[0] ], function (error, insertResult) {
@@ -132,14 +132,34 @@ async function getData() {
                         descCount ++;
 
                         locationNum ++;
-                    }
+                    };
                 });
             } else {
                 console.log("already inserted")
-            }
+            };
         });
     } else {
         console.log("No splatfest announced")
+        for (const location of descData) {
+            if (location[7].length > 0) {
+                winTeam = location[7][0].textContent.trim();
+                let eventType = "splatfest";
+                var getWinTeam = 'SELECT `descData`.`id`, `descData`.`calId`, `descData`.`dataTypeId`, `descData`.`data`, `winTeam`.`id` AS winId, `winTeam`.`data` FROM `descData` LEFT JOIN `splatCal` ON `descData`.`calId` = `splatCal`.`id` LEFT JOIN `descData` AS `winTeam` ON `winTeam`.`calId` = `descData`.`calId` AND `winTeam`.`dataTypeId` = "4" AND `winTeam`.`data` = ? LEFT JOIN `win` ON `descData`.`calId` = `win`.`calId` WHERE `descData`.`dataTypeId` = 1 AND `descData`.`data` = ? AND `splatCal`.`event` = ? AND `win`.`id` IS NULL';
+                sqlconnection.query(getWinTeam, [ winTeam, location[0], eventType ], function (error, events) {
+                    if (error) throw error;
+                    for (const event of events) {
+                        var sqlGetCalData = "INSERT INTO `win` (`calId`, `descId`) VALUES (?, ?)";
+                        sqlconnection.query(sqlGetCalData, [ event.calId, event.winId ], function (error, events) {
+                            if (error) throw error;
+                            console.log("winner saved for " + location[0] + ": " + winTeam);
+
+                        });
+                    };
+                });
+            } else {
+                console.log("no winner announced");
+            };
+        };
     };
 };
 
