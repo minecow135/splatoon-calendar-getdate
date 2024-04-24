@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Apr 24, 2024 at 01:11 PM
+-- Generation Time: Apr 24, 2024 at 01:24 PM
 -- Server version: 11.3.2-MariaDB-1:11.3.2+maria~ubu2204
 -- PHP Version: 8.2.8
 
@@ -68,8 +68,26 @@ CREATE TABLE `discordSent` (
   `id` int(11) NOT NULL,
   `channelId` decimal(25,0) NOT NULL,
   `calId` int(11) NOT NULL,
-  `sentMessage` tinyint(1) NOT NULL
+  `messageType` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messageTypes`
+--
+
+CREATE TABLE `messageTypes` (
+  `id` int(11) NOT NULL,
+  `messageType` varchar(15) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `messageTypes`
+--
+
+INSERT INTO `messageTypes` (`id`, `messageType`) VALUES
+(1, 'newSplatfest');
 
 -- --------------------------------------------------------
 
@@ -122,7 +140,14 @@ ALTER TABLE `descData`
 --
 ALTER TABLE `discordSent`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `discordSentCalId` (`calId`);
+  ADD KEY `discordSentCalId` (`calId`),
+  ADD KEY `sentMessageType` (`messageType`);
+
+--
+-- Indexes for table `messageTypes`
+--
+ALTER TABLE `messageTypes`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `splatCal`
@@ -161,6 +186,12 @@ ALTER TABLE `discordSent`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `messageTypes`
+--
+ALTER TABLE `messageTypes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `splatCal`
 --
 ALTER TABLE `splatCal`
@@ -187,7 +218,8 @@ ALTER TABLE `descData`
 -- Constraints for table `discordSent`
 --
 ALTER TABLE `discordSent`
-  ADD CONSTRAINT `discordSentCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `discordSentCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `sentMessageType` FOREIGN KEY (`messageType`) REFERENCES `messageTypes` (`id`);
 
 --
 -- Constraints for table `win`

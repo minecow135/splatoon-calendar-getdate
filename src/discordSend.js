@@ -39,11 +39,11 @@ async function sendMsg(SplatCalEmbed, id) {
     await until(_ => client.readyTimestamp);
     for (const discordChannel of discordconfig.channelId) {
         if (discordChannel) {
-            var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ?";
+            var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 1";
             sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
                 if (DiscordSent[0].count == 0) {
                     if (client.channels.cache.get(discordChannel).send({ embeds: SplatCalEmbed })) {
-                        var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `sentMessage`) VALUES (?, ?, '1')";
+                        var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `messageType`) VALUES (?, ?, '1')";
                         sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
                             if (error) throw error;
                             console.log("Message sent!", id, "in:", discordChannel);
