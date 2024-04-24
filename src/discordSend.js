@@ -37,18 +37,28 @@ function until(conditionFunction) {
 
 async function sendMsg(SplatCalEmbed, id) {
     await until(_ => client.readyTimestamp);
-    if (client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed })) {
-        var sqlGetCalData = "INSERT INTO `discordSent` (`id`, `calId`, `sentMessage`) VALUES (NULL, ?, '1')";
-        sqlconnection.query(sqlGetCalData, [ id ], function (error, events) {
-            if (error) throw error;
-            console.log("Message sent!", id);
-        });
+    for (const discordChannel of discordconfig.channelId) {
+        if (discordChannel) {
+            var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ?";
+            sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
+                if (DiscordSent[0].count == 0) {
+                    if (client.channels.cache.get(discordChannel).send({ embeds: SplatCalEmbed })) {
+                        var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `sentMessage`) VALUES (?, ?, '1')";
+                        sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
+                            if (error) throw error;
+                            console.log("Message sent!", id, "in:", discordChannel);
+                        });
+                    };
+                };
+            });
+        };
+        //*/
     };
 };
 
 async function discordSend() {
     eventType = "splatfest";
-    var sqlGetData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `discordSent`.`sentMessage` FROM `splatCal` LEFT JOIN `discordSent` ON `discordSent`.`calId` = `splatCal`.`id` WHERE `event` = ? AND `discordSent`.`sentMessage` IS NULL';
+    var sqlGetData = 'SELECT `id`, `title`, `startDate`, `endDate` FROM `splatCal` WHERE `event` = ?';
     sqlconnection.query(sqlGetData, [ eventType ], function (error, events) {
         if (error) throw error;
         if (events && events.length > 0) {

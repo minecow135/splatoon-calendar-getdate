@@ -1,8 +1,9 @@
 discordconfig = {
     botToken  : "",
     
-    serverId  : "",
-    channelId : ""
+    channelId : [
+        "",
+    ]
 };
 
 module.exports = discordconfig;
