@@ -7,6 +7,11 @@ discordconfig = {
                 "",
             ],
         },
+        winSplatfest : {
+            channelId : [
+                "",
+            ],
+        },
     },
 };
 
