@@ -1,9 +1,8 @@
 const mysql = require('mysql2');
-const cron = require('node-cron');
-const { Client, Events, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const { Client, Events, GatewayIntentBits } = require('discord.js');
 
-const sql = require('../db.js');
-const discordconfig = require('../discordconfig.js');
+const sql = require('../../conf/db.js');
+const discordconfig = require('../../conf/discordconfig.js');
 const token = discordconfig.botToken;
 
 // Create a new client instance
@@ -52,7 +51,6 @@ async function sendMsg(SplatCalEmbed, id) {
                 };
             });
         };
-        //*/
     };
 };
 
@@ -101,8 +99,8 @@ async function discordSend() {
                                     for (const team of eventRegion.teams) {
                                         eventData = { name: team.data, value: "", inline: true };
                                         fields.push(eventData);
-                                    }
-                                }
+                                    };
+                                };
 
                                 const description = "<t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(event.end).getTime() / 1000) + ":f>";
                                 const link = "https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest";

@@ -2,7 +2,7 @@ const mysql = require('mysql2');
 const ics = require('ics');
 const { writeFileSync } = require('fs');
 
-const sql = require('../db.js');
+const sql = require('../../conf/db.js');
 
 sqlconnection = mysql.createConnection(sql);
 
@@ -54,21 +54,20 @@ function createIcs() {
                         let created = [ event.created.getFullYear(), event.created.getMonth()+1, event.created.getDate(), event.created.getHours(), event.created.getMinutes() ];
 
                         eventArr.push({ title, description, busyStatus, start, end, uid, created });
-                    }
+                    };
 
                     const { icsError, value } = ics.createEvents(eventArr);
                     if (icsError) throw icsError;
 
-                    console.log("Calendar updated")
+                    console.log("Calendar updated");
 
-                    writeFileSync(`${__dirname}/../ics/splatfest.ics`, value);
+                    writeFileSync(`${__dirname}/../../ics/splatfest.ics`, value);
                 });
             });
         } else {
             console.log("no splatfests saved");
-        }
-
+        };
     });
-}
+};
 
 module.exports = createIcs;

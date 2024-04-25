@@ -3,7 +3,7 @@ const { JSDOM } = require('jsdom');
 const { nanoid } = require('nanoid');
 const mysql = require('mysql2');
 
-const sql = require('../db.js');
+const sql = require('../../conf/db.js');
 
 sqlconnection = mysql.createConnection(sql);
 
@@ -26,7 +26,7 @@ async function pullData() {
         return { dateAll, teamsAll, teamsLinkAll, imgAll, placeAll };
     });
     return webValue;
-}
+};
 
 async function getInfo() {
     let { dateAll, teamsAll, teamsLinkAll, imgAll, placeAll } = await pullData();
@@ -51,11 +51,9 @@ async function getInfo() {
             let endDate = startEndDate[1].textContent;
 
             return { name, startDate, endDate, winner };
-        })
+        });
 
-        let teams = []
-        teamsDirty = team.textContent.split("vs.")
-        teams = teamsDirty.map(s => s.trim());
+        let teams = team.textContent.split("vs.").map(s => s.trim());
 
         descData.push([
             name,
@@ -84,7 +82,7 @@ async function getData() {
         let created = new Date(Date.now());
         let uid = nanoid() + "@splatfest.awdawd.eu";
 
-        var sqlGetDate = 'SELECT COUNT(id) AS `count` FROM `splatCal` WHERE `startDate` = ?'
+        var sqlGetDate = 'SELECT COUNT(id) AS `count` FROM `splatCal` WHERE `startDate` = ?';
         sqlconnection.query(sqlGetDate, [ startDate ], function (error, GetCount) {
             if (error) throw error;
             if (GetCount[0].count === 0) {
@@ -99,27 +97,27 @@ async function getData() {
 
                         sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 1, desc[0] ], function (error, insertResult) {
                             if (error) throw error;
-                            console.log("Name inserted")
+                            console.log("Name inserted");
                         });
                         descCount ++;
 
                         sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 2, desc[1] ], function (error, insertResult) {
                             if (error) throw error;
-                            console.log("location inserted")
+                            console.log("location inserted");
                         });
                         descCount ++;
 
                         sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 3, desc[2] ], function (error, insertResult) {
                             if (error) throw error;
-                            console.log("link inserted")
+                            console.log("link inserted");
                         });
                         descCount ++;
 
-                        teamNum = 1
+                        teamNum = 1;
                         for (const team of desc[3]) {
                             sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 4, team ], function (error, insertResult) {
                                 if (error) throw error;
-                                console.log("Team inserted")
+                                console.log("Team inserted");
                             });
                             teamNum ++;
                             descCount ++;
@@ -127,7 +125,7 @@ async function getData() {
 
                         sqlconnection.query(sqlInsertDesc, [ insertResult.insertId, locationNum, descCount, 5, desc[4] ], function (error, insertResult) {
                             if (error) throw error;
-                            console.log("image link inserted")
+                            console.log("image link inserted");
                         });
                         descCount ++;
 
@@ -135,11 +133,11 @@ async function getData() {
                     };
                 });
             } else {
-                console.log("already inserted")
+                console.log("already inserted");
             };
         });
     } else {
-        console.log("No splatfest announced")
+        console.log("No splatfest announced");
         for (const location of descData) {
             if (location[7].length > 0) {
                 winTeam = location[7][0].textContent.trim();

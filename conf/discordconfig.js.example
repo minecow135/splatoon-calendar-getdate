@@ -1,6 +1,6 @@
 discordconfig = {
     botToken  : "",
-    
+
     channelId : [
         "",
     ]
