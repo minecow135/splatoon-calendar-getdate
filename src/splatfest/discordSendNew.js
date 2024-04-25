@@ -36,7 +36,7 @@ function until(conditionFunction) {
 
 async function sendMsg(SplatCalEmbed, id) {
     await until(_ => client.readyTimestamp);
-    for (const discordChannel of discordconfig.channelId) {
+    for (const discordChannel of discordconfig.splatfest.newSplatfest.channelId) {
         if (discordChannel) {
             var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 1";
             sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {

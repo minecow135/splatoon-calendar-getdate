@@ -1,9 +1,13 @@
 discordconfig = {
     botToken  : "",
 
-    channelId : [
-        "",
-    ]
+    splatfest : {
+        newSplatfest : {
+            channelId : [
+                "",
+            ],
+        },
+    },
 };
 
 module.exports = discordconfig;
