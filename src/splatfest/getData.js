@@ -3,7 +3,12 @@ const { JSDOM } = require('jsdom');
 const { nanoid } = require('nanoid');
 const mysql = require('mysql2');
 
-const sql = require('../../conf/db.js');
+sql = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+};
 
 sqlconnection = mysql.createConnection(sql);
 
@@ -13,7 +18,6 @@ sqlconnection.connect((err) => {
 });
 
 async function pullData() {
-    //webValue = await axios.get("http://172.25.20.41/splatoon-calendar/ics/a/Main%20Page_Splatfest%20-%20Inkipedia,%20the%20Splatoon%20wiki.htm").then(function (response) {
     webValue = await axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
         // handle success
         let html = (new JSDOM(response.data));

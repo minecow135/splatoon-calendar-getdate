@@ -1,9 +1,14 @@
 const mysql = require('mysql2');
 const { Client, Events, GatewayIntentBits } = require('discord.js');
 
-const sql = require('../../conf/db.js');
-const discordconfig = require('../../conf/discordconfig.js');
-const token = discordconfig.botToken;
+sql = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+};
+
+const token = process.env.botToken;
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -36,7 +41,7 @@ function until(conditionFunction) {
 
 async function sendMsg(SplatCalEmbed, id) {
     await until(_ => client.readyTimestamp);
-    for (const discordChannel of discordconfig.splatfest.newSplatfest.channelId) {
+    for (const discordChannel of process.env.splatfestNewChannel.split(",").map(s => s.trim())) {
         if (discordChannel) {
             var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 1";
             sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
