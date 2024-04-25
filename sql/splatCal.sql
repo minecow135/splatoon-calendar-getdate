@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Apr 24, 2024 at 01:24 PM
+-- Generation Time: Apr 25, 2024 at 07:13 AM
 -- Server version: 11.3.2-MariaDB-1:11.3.2+maria~ubu2204
 -- PHP Version: 8.2.8
 
@@ -74,11 +74,30 @@ CREATE TABLE `discordSent` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `eventTypes`
+--
+
+CREATE TABLE `eventTypes` (
+  `id` int(11) NOT NULL,
+  `event` varchar(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `eventTypes`
+--
+
+INSERT INTO `eventTypes` (`id`, `event`) VALUES
+(1, 'splatfest');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `messageTypes`
 --
 
 CREATE TABLE `messageTypes` (
   `id` int(11) NOT NULL,
+  `eventId` int(11) NOT NULL,
   `messageType` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -86,8 +105,8 @@ CREATE TABLE `messageTypes` (
 -- Dumping data for table `messageTypes`
 --
 
-INSERT INTO `messageTypes` (`id`, `messageType`) VALUES
-(1, 'newSplatfest');
+INSERT INTO `messageTypes` (`id`, `eventId`, `messageType`) VALUES
+(1, 1, 'newSplatfest');
 
 -- --------------------------------------------------------
 
@@ -97,7 +116,7 @@ INSERT INTO `messageTypes` (`id`, `messageType`) VALUES
 
 CREATE TABLE `splatCal` (
   `id` int(11) NOT NULL,
-  `event` varchar(10) NOT NULL,
+  `eventId` int(11) NOT NULL,
   `title` varchar(20) NOT NULL,
   `startDate` datetime NOT NULL,
   `endDate` datetime NOT NULL,
@@ -144,16 +163,24 @@ ALTER TABLE `discordSent`
   ADD KEY `sentMessageType` (`messageType`);
 
 --
+-- Indexes for table `eventTypes`
+--
+ALTER TABLE `eventTypes`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `messageTypes`
 --
 ALTER TABLE `messageTypes`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `messageEvent` (`eventId`);
 
 --
 -- Indexes for table `splatCal`
 --
 ALTER TABLE `splatCal`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `calEvent` (`eventId`);
 
 --
 -- Indexes for table `win`
@@ -184,6 +211,12 @@ ALTER TABLE `descData`
 --
 ALTER TABLE `discordSent`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `eventTypes`
+--
+ALTER TABLE `eventTypes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `messageTypes`
@@ -220,6 +253,18 @@ ALTER TABLE `descData`
 ALTER TABLE `discordSent`
   ADD CONSTRAINT `discordSentCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `sentMessageType` FOREIGN KEY (`messageType`) REFERENCES `messageTypes` (`id`);
+
+--
+-- Constraints for table `messageTypes`
+--
+ALTER TABLE `messageTypes`
+  ADD CONSTRAINT `messageEvent` FOREIGN KEY (`eventId`) REFERENCES `eventTypes` (`id`);
+
+--
+-- Constraints for table `splatCal`
+--
+ALTER TABLE `splatCal`
+  ADD CONSTRAINT `calEvent` FOREIGN KEY (`eventId`) REFERENCES `eventTypes` (`id`);
 
 --
 -- Constraints for table `win`

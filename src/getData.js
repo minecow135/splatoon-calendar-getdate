@@ -77,7 +77,7 @@ async function getData() {
     let { descData, err } = await getInfo();
 
     if (err.announced) {
-        let event = "splatfest";
+        let event = 1;
         let title = "Splatfest";
         let startDate = new Date(descData[0][5]);
         let endDate = new Date(descData[0][6]);
@@ -88,7 +88,7 @@ async function getData() {
         sqlconnection.query(sqlGetDate, [ startDate ], function (error, GetCount) {
             if (error) throw error;
             if (GetCount[0].count === 0) {
-                var sqlInsert = 'INSERT INTO `splatCal` (`event`, `title`, `startDate`, `endDate`, `created`, `uid`) VALUES (?, ?, ?, ?, ?, ?)';
+                var sqlInsert = 'INSERT INTO `splatCal` (`eventId`, `title`, `startDate`, `endDate`, `created`, `uid`) VALUES (?, ?, ?, ?, ?, ?)';
                 sqlconnection.query(sqlInsert, [ event, title, startDate, endDate, created, uid ], function (error, insertResult) {
                     if (error) throw error;
                     console.log("Splatfest Inserted");
@@ -144,7 +144,7 @@ async function getData() {
             if (location[7].length > 0) {
                 winTeam = location[7][0].textContent.trim();
                 let eventType = "splatfest";
-                var getWinTeam = 'SELECT `descData`.`id`, `descData`.`calId`, `descData`.`dataTypeId`, `descData`.`data`, `winTeam`.`id` AS winId, `winTeam`.`data` FROM `descData` LEFT JOIN `splatCal` ON `descData`.`calId` = `splatCal`.`id` LEFT JOIN `descData` AS `winTeam` ON `winTeam`.`calId` = `descData`.`calId` AND `winTeam`.`dataTypeId` = "4" AND `winTeam`.`data` = ? LEFT JOIN `win` ON `descData`.`calId` = `win`.`calId` WHERE `descData`.`dataTypeId` = 1 AND `descData`.`data` = ? AND `splatCal`.`event` = ? AND `win`.`id` IS NULL';
+                var getWinTeam = 'SELECT `descData`.`id`, `descData`.`calId`, `descData`.`dataTypeId`, `descData`.`data`, `winTeam`.`id` AS winId, `winTeam`.`data` FROM `descData` LEFT JOIN `splatCal` ON `descData`.`calId` = `splatCal`.`id` LEFT JOIN `descData` AS `winTeam` ON `descData`.`calId` = `winTeam`.`calId` AND `winTeam`.`dataTypeId` = 4 AND `winTeam`.`data` = ? LEFT JOIN `win` ON `descData`.`calId` = `win`.`calId` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` WHERE `descData`.`dataTypeId` = 1 AND `descData`.`data` = ? AND `eventTypes`.`event` = ? AND `win`.`id` IS NULL';
                 sqlconnection.query(getWinTeam, [ winTeam, location[0], eventType ], function (error, events) {
                     if (error) throw error;
                     for (const event of events) {

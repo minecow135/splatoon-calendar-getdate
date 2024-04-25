@@ -13,7 +13,7 @@ sqlconnection.connect((err) => {
 
 function createIcs() {
     eventType = "splatfest";
-    var sqlGetCalData = 'SELECT `id`, `title`, `startDate`, `endDate`, `created`, `uid`  FROM `splatCal` WHERE `event` = ?';
+    var sqlGetCalData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `splatCal`.`created`, `splatCal`.`uid` FROM `splatCal` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` WHERE `eventTypes`.`event` = ?';
     sqlconnection.query(sqlGetCalData, [ eventType ], function (error, events) {
         if (error) throw error;
         if (events){
