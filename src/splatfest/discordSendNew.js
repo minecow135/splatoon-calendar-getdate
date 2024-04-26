@@ -1,5 +1,5 @@
 const mysql = require('mysql2');
-const { Client, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 
 sql = {
     host: process.env.DB_HOST,
@@ -20,6 +20,9 @@ client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
+// Log in to Discord with your client's token
+client.login(token);
+
 sqlconnection = mysql.createConnection(sql);
 
 sqlconnection.connect((err) => {
@@ -27,8 +30,17 @@ sqlconnection.connect((err) => {
     console.log('MySQL connected');
 });
 
-// Log in to Discord with your client's token
-client.login(token);
+function getEnv(prefix) {
+    const obj = process.env;
+    const regex = new RegExp('^' + prefix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+    const filteredObj = [];
+    Object.keys(obj).forEach(key => {
+        if (regex.test(key)) {
+            filteredObj.push(obj[key].split(",").map(s => s.trim()));
+        };
+    });
+    return filteredObj;
+};
 
 function until(conditionFunction) {
 
@@ -39,24 +51,59 @@ function until(conditionFunction) {
     return new Promise(poll);
 }
 
-async function sendMsg(SplatCalEmbed, id) {
-    await until(_ => client.readyTimestamp);
-    for (const discordChannel of process.env.splatfestNewChannel.split(",").map(s => s.trim())) {
-        if (discordChannel) {
-            var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 1";
-            sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
-                if (DiscordSent[0].count == 0) {
-                    if (client.channels.cache.get(discordChannel).send({ embeds: SplatCalEmbed })) {
-                        var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `messageType`) VALUES (?, ?, '1')";
-                        sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
-                            if (error) throw error;
-                            console.log("Message sent!", id, "in:", discordChannel);
-                        });
-                    };
-                };
-            });
+function createMsg(data, discord) {
+    let content = "**" + data.title + "**";
+    content += "\n<t:" + Math.floor(new Date(data.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(data.end).getTime() / 1000) + ":f>";
+    let img = [];
+    for (const dataRegion of data.description) {
+        content += "\n\n" + dataRegion.locationData + ":";
+        content += "\n    " + dataRegion.nameData;
+        count = 0;
+        for (const team of dataRegion.teams) {
+            if (count === 0) {
+                content += "\n    ";
+            } else {
+                content += ",  ";
+            };
+            content += team.data;
+            count ++;
         };
+        img.push(new AttachmentBuilder(dataRegion.imgData));
     };
+
+    for (let index = 1; index < discord.length; index++) {
+        const element = discord[index];
+        if (index === 1) {
+            content += "\n\n";
+        } else {
+            content += ", ";
+        };
+        content += "<@&" + element + ">";
+    };
+
+    let msg = {};
+    msg.content = content;
+    if (img) {
+        msg.files = img;
+    }
+
+    return msg;
+}
+
+async function sendMsg(SplatCalData, id, discordChannel) {
+    await until(_ => client.readyTimestamp);
+    var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 1";
+    sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
+        if (DiscordSent[0].count == 0) {
+            if (client.channels.cache.get(discordChannel).send( SplatCalData )) {
+                var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `messageType`) VALUES (?, ?, '1')";
+                sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
+                    if (error) throw error;
+                    console.log("Message sent!", id, "in:", discordChannel);
+                });
+            };
+        };
+    });
 };
 
 async function discordSend() {
@@ -97,46 +144,11 @@ async function discordSend() {
                                 eventArr.push({ id, title, description, start, end, });
                             };
                             for (const event of eventArr) {
-                                let fields = [];
-                                for (const eventRegion of event.description) {
-                                    eventHead = { name: eventRegion.nameData, value: eventRegion.locationData, inline: false };
-                                    fields.push(eventHead);
-                                    for (const team of eventRegion.teams) {
-                                        eventData = { name: team.data, value: "", inline: true };
-                                        fields.push(eventData);
-                                    };
+                                const env = getEnv("splatfestNew");
+                                for (const item of env) {
+                                    msg = createMsg(event, item);
+                                    sendMsg(msg, event.id, item[0]);
                                 };
-
-                                const description = "<t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(event.end).getTime() / 1000) + ":f>";
-                                const link = "https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest";
-
-                                let count = 0;
-                                let SplatCalEmbed = []
-                                for (const item of event.description) {
-                                    if (count === 0) {
-                                        SplatCalEmbed.push ({
-                                            color: 0x0099ff,
-                                            title: event.title,
-                                            url: link,
-                                            description: description,
-                                            fields: fields,
-                                            image: {
-                                                url: item.imgData,
-                                            },
-                                        });
-                                    } else {
-                                        SplatCalEmbed.push ({
-                                            url: link,
-                                            image: {
-                                                url: item.imgData,
-                                            },
-                                        });
-                                    };
-
-                                    count ++;
-                                };
-
-                                sendMsg(SplatCalEmbed, event.id);
                             };
                         };
                     });
