@@ -2,14 +2,27 @@
 
 ## How it works
 
-Pulls data from splatoonwiki.org
-Uploads to database
+### get info
 
-Pulls from database, and creates a ics file with next splatfest
-Pulls from database, and sends message to discord server when a new splatfest is announced
-Pulls from database, and sends message to discord server when the winner is announced
+- Pulls data from splatoonwiki.org
+- Uploads to database
+
+### use info
+
+- Pulls from database, and creates a ics file with next splatfest
+- Pulls from database, and sends message to discord server when a new splatfest is announced
+- Pulls from database, and sends message to discord server when the winner is announced
 
 ## How to use
+
+### update
+
+to update run the following commands
+
+```bash
+git checkout v1.0.2
+npm install
+```
 
 ### Host directly
 
@@ -21,7 +34,7 @@ Pulls from database, and sends message to discord server when the winner is anno
 
 #### Setup directly hosted
 
-1. Clone the newest release with `git clone -b v1.0.1 https://github.com/minecow135/splatoon-calendar.git`
+1. Clone the newest release with `git clone -b v1.0.2 https://github.com/minecow135/splatoon-calendar.git`
 2. Run npm install
 3. Import the database in the sql folder
 4. Create a .env file
@@ -39,7 +52,7 @@ Pulls from database, and sends message to discord server when the winner is anno
 
 #### Setup docker
 
-1. Clone the newest release with `git clone -b v1.0.1 https://github.com/minecow135/splatoon-calendar.git`
+1. Clone the newest release with `git clone -b v1.0.2 https://github.com/minecow135/splatoon-calendar.git`
 2. Run npm install
 3. run `sudo chown www-data splatoon-calendar/ -R`
 4. Import the database in the sql folder
