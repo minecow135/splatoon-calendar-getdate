@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Apr 25, 2024 at 07:13 AM
+-- Generation Time: Apr 26, 2024 at 10:06 PM
 -- Server version: 11.3.2-MariaDB-1:11.3.2+maria~ubu2204
 -- PHP Version: 8.2.8
 
@@ -106,7 +106,8 @@ CREATE TABLE `messageTypes` (
 --
 
 INSERT INTO `messageTypes` (`id`, `eventId`, `messageType`) VALUES
-(1, 1, 'newSplatfest');
+(1, 1, 'newSplatfest'),
+(2, 1, 'splatfestWin');
 
 -- --------------------------------------------------------
 
@@ -222,7 +223,7 @@ ALTER TABLE `eventTypes`
 -- AUTO_INCREMENT for table `messageTypes`
 --
 ALTER TABLE `messageTypes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `splatCal`
