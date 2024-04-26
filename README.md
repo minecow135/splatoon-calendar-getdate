@@ -2,14 +2,27 @@
 
 ## How it works
 
-Pulls data from splatoonwiki.org
-Uploads to database
+### get info
 
-Pulls from database, and creates a ics file with next splatfest
-Pulls from database, and sends message to discord server when a new splatfest is announced
-Pulls from database, and sends message to discord server when the winner is announced
+- Pulls data from splatoonwiki.org
+- Uploads to database
+
+### use info
+
+- Pulls from database, and creates a ics file with next splatfest
+- Pulls from database, and sends message to discord server when a new splatfest is announced
+- Pulls from database, and sends message to discord server when the winner is announced
 
 ## How to use
+
+### update
+
+to update run the following commands
+
+```bash
+git checkout v1.0.1
+npm install
+```
 
 ### Host directly
 
