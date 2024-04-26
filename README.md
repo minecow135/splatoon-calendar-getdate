@@ -21,12 +21,13 @@ Pulls from database, and sends message to discord server when the winner is anno
 
 #### Setup directly hosted
 
-1. Clone the repository
+1. Clone the newest release with `git clone -b v1.0.0 https://github.com/minecow135/splatoon-calendar.git`
 2. Run npm install
-3. Import the database
+3. Import the database in the sql folder
 4. Create a .env file
-5. Point the web server to the web folder
-6. Start node
+5. run `sudo chown www-data splatoon-calendar/ -R`
+6. Point the web server to the web folder
+7. Start node
 
 ### Docker
 
@@ -38,11 +39,12 @@ Pulls from database, and sends message to discord server when the winner is anno
 
 #### Setup docker
 
-1. Clone the repository
+1. Clone the newest release with `git clone -b v1.0.0 https://github.com/minecow135/splatoon-calendar.git`
 2. Run npm install
-3. Import the database
-4. Use the Docker compose file to create the needed docker containers. be sure to edit the environment variables
-5. Start the containers
+3. run `sudo chown www-data splatoon-calendar/ -R`
+4. Import the database in the sql folder
+5. Use the Docker compose file to create the needed docker containers. be sure to edit the environment variables
+6. Start the containers
 
 ## file contents
 
@@ -76,7 +78,7 @@ version: "2"
 services:
   node:
     image: "node:20"
-    user: "node"
+    user: "www-data"
     working_dir: /home/node/app
     environment:
       - NODE_ENV=production
@@ -99,7 +101,7 @@ services:
       # copy with suffix to get more channels
       #splatfestWin2=CHANNEL ID,PING ID,PING ID
     volumes:
-      - /var/www/splatCal:/home/node/app # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE - /web
+      - /var/www/splatoon-calendar:/home/node/app # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE - /web
     expose:
       - "8001"
     ports:
@@ -107,10 +109,10 @@ services:
     command: "npm start"
   web:
     image: php:8.2-apache
-    user: www-data
+    user: "www-data"
     restart: always
     ports:
       - "8104:80" # first number is port on the server. change this if needed
     volumes:
-      - /var/www/splatCal/web:/var/www/html # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE + /web
+      - /var/www/splatoon-calendar/web:/var/www/html # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE + /web
 ```
