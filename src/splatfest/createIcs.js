@@ -2,18 +2,23 @@ const mysql = require('mysql2');
 const ics = require('ics');
 const { writeFileSync } = require('fs');
 
-const sql = require('../db.js');
+sql = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+};
+
+sqlconnection = mysql.createConnection(sql);
+
+sqlconnection.connect((err) => {
+    if (err) throw err;
+    console.log('MySQL connected');
+});
 
 function createIcs() {
-    sqlconnection = mysql.createConnection(sql);
-
-    sqlconnection.connect((err) => {
-        if (err) throw err;
-        console.log('MySQL connected');
-    });
-
     eventType = "splatfest";
-    var sqlGetCalData = 'SELECT `id`, `title`, `startDate`, `endDate`, `created`, `uid`  FROM `splatCal` WHERE `event` = ?';
+    var sqlGetCalData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `splatCal`.`created`, `splatCal`.`uid` FROM `splatCal` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` WHERE `eventTypes`.`event` = ?';
     sqlconnection.query(sqlGetCalData, [ eventType ], function (error, events) {
         if (error) throw error;
         if (events){
@@ -54,21 +59,20 @@ function createIcs() {
                         let created = [ event.created.getFullYear(), event.created.getMonth()+1, event.created.getDate(), event.created.getHours(), event.created.getMinutes() ];
 
                         eventArr.push({ title, description, busyStatus, start, end, uid, created });
-                    }
+                    };
 
                     const { icsError, value } = ics.createEvents(eventArr);
                     if (icsError) throw icsError;
 
-                    console.log("Calendar updated")
+                    console.log("Calendar updated");
 
-                    writeFileSync(`${__dirname}/../ics/splatfest.ics`, value);
+                    writeFileSync(`${__dirname}/../../ics/splatfest.ics`, value);
                 });
             });
         } else {
             console.log("no splatfests saved");
-        }
-
+        };
     });
-}
+};
 
 module.exports = createIcs;

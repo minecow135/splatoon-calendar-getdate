@@ -1,8 +1,0 @@
-discordconfig = {
-    botToken  : "",
-    
-    serverId  : "",
-    channelId : ""
-};
-
-module.exports = discordconfig;

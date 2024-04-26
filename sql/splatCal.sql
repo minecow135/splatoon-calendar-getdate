@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Apr 21, 2024 at 03:32 PM
+-- Generation Time: Apr 25, 2024 at 07:13 AM
 -- Server version: 11.3.2-MariaDB-1:11.3.2+maria~ubu2204
 -- PHP Version: 8.2.8
 
@@ -66,9 +66,47 @@ CREATE TABLE `descData` (
 
 CREATE TABLE `discordSent` (
   `id` int(11) NOT NULL,
+  `channelId` decimal(25,0) NOT NULL,
   `calId` int(11) NOT NULL,
-  `sentMessage` tinyint(1) NOT NULL
+  `messageType` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `eventTypes`
+--
+
+CREATE TABLE `eventTypes` (
+  `id` int(11) NOT NULL,
+  `event` varchar(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `eventTypes`
+--
+
+INSERT INTO `eventTypes` (`id`, `event`) VALUES
+(1, 'splatfest');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messageTypes`
+--
+
+CREATE TABLE `messageTypes` (
+  `id` int(11) NOT NULL,
+  `eventId` int(11) NOT NULL,
+  `messageType` varchar(15) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `messageTypes`
+--
+
+INSERT INTO `messageTypes` (`id`, `eventId`, `messageType`) VALUES
+(1, 1, 'newSplatfest');
 
 -- --------------------------------------------------------
 
@@ -78,12 +116,24 @@ CREATE TABLE `discordSent` (
 
 CREATE TABLE `splatCal` (
   `id` int(11) NOT NULL,
-  `event` varchar(10) NOT NULL,
+  `eventId` int(11) NOT NULL,
   `title` varchar(20) NOT NULL,
   `startDate` datetime NOT NULL,
   `endDate` datetime NOT NULL,
   `created` datetime NOT NULL,
   `uid` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `win`
+--
+
+CREATE TABLE `win` (
+  `id` int(11) NOT NULL,
+  `calId` int(11) NOT NULL,
+  `descId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -109,13 +159,36 @@ ALTER TABLE `descData`
 --
 ALTER TABLE `discordSent`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `discordSentCalId` (`calId`);
+  ADD KEY `discordSentCalId` (`calId`),
+  ADD KEY `sentMessageType` (`messageType`);
+
+--
+-- Indexes for table `eventTypes`
+--
+ALTER TABLE `eventTypes`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `messageTypes`
+--
+ALTER TABLE `messageTypes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `messageEvent` (`eventId`);
 
 --
 -- Indexes for table `splatCal`
 --
 ALTER TABLE `splatCal`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `calEvent` (`eventId`);
+
+--
+-- Indexes for table `win`
+--
+ALTER TABLE `win`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `winCalId` (`calId`),
+  ADD KEY `winDescId` (`descId`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -140,9 +213,27 @@ ALTER TABLE `discordSent`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `eventTypes`
+--
+ALTER TABLE `eventTypes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `messageTypes`
+--
+ALTER TABLE `messageTypes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `splatCal`
 --
 ALTER TABLE `splatCal`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `win`
+--
+ALTER TABLE `win`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -160,7 +251,27 @@ ALTER TABLE `descData`
 -- Constraints for table `discordSent`
 --
 ALTER TABLE `discordSent`
-  ADD CONSTRAINT `discordSentCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `discordSentCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `sentMessageType` FOREIGN KEY (`messageType`) REFERENCES `messageTypes` (`id`);
+
+--
+-- Constraints for table `messageTypes`
+--
+ALTER TABLE `messageTypes`
+  ADD CONSTRAINT `messageEvent` FOREIGN KEY (`eventId`) REFERENCES `eventTypes` (`id`);
+
+--
+-- Constraints for table `splatCal`
+--
+ALTER TABLE `splatCal`
+  ADD CONSTRAINT `calEvent` FOREIGN KEY (`eventId`) REFERENCES `eventTypes` (`id`);
+
+--
+-- Constraints for table `win`
+--
+ALTER TABLE `win`
+  ADD CONSTRAINT `winCalId` FOREIGN KEY (`calId`) REFERENCES `splatCal` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `winDescId` FOREIGN KEY (`descId`) REFERENCES `descData` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

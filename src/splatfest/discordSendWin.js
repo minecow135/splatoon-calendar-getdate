@@ -1,10 +1,14 @@
 const mysql = require('mysql2');
-const cron = require('node-cron');
-const { Client, Events, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const { Client, Events, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 
-const sql = require('../db.js');
-const discordconfig = require('../discordconfig.js');
-const token = discordconfig.botToken;
+sql = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+};
+
+const token = process.env.botToken;
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -26,6 +30,18 @@ sqlconnection.connect((err) => {
 // Log in to Discord with your client's token
 client.login(token);
 
+function getEnv(prefix) {
+    const obj = process.env;
+    const regex = new RegExp('^' + prefix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+    const filteredObj = [];
+    Object.keys(obj).forEach(key => {
+        if (regex.test(key)) {
+            filteredObj.push(obj[key].split(",").map(s => s.trim()));
+        };
+    });
+    return filteredObj;
+};
+
 function until(conditionFunction) {
 
     const poll = resolve => {
@@ -35,20 +51,55 @@ function until(conditionFunction) {
     return new Promise(poll);
 }
 
-async function sendMsg(SplatCalEmbed, id) {
-    await until(_ => client.readyTimestamp);
-    if (client.channels.cache.get(discordconfig.channelId).send({ embeds: SplatCalEmbed })) {
-        var sqlGetCalData = "INSERT INTO `discordSent` (`id`, `calId`, `sentMessage`) VALUES (NULL, ?, '1')";
-        sqlconnection.query(sqlGetCalData, [ id ], function (error, events) {
-            if (error) throw error;
-            console.log("Message sent!", id);
-        });
+function createMsg(data, discord) {
+    let content = "**" + data.title + "**";
+    content += "\n<t:" + Math.floor(new Date(data.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(data.end).getTime() / 1000) + ":f>";
+    let img = [];
+    for (const dataRegion of data.description) {
+        content += "\n\n" + dataRegion.locationData + ":";
+        content += "\n    " + dataRegion.nameData;
+        content += "\n    Winner: " + dataRegion.winner;
+        img.push(new AttachmentBuilder(dataRegion.imgData));
     };
+
+    for (let index = 1; index < discord.length; index++) {
+        const element = discord[index];
+        if (index === 1) {
+            content += "\n\n";
+        } else {
+            content += ", ";
+        };
+        content += "<@&" + element + ">";
+    };
+
+    let msg = {};
+    msg.content = content;
+    if (img) {
+        msg.files = img;
+    }
+
+    return msg;
+}
+
+async function sendMsg(SplatCalData, id, discordChannel) {
+    await until(_ => client.readyTimestamp);
+    var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 2";
+    sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
+        if (DiscordSent[0].count == 0) {
+            if (client.channels.cache.get(discordChannel).send( SplatCalData )) {
+                var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `messageType`) VALUES (?, ?, '2')";
+                sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
+                    if (error) throw error;
+                    console.log("Win message sent!", id, "in:", discordChannel);
+                });
+            };
+        };
+    });
 };
 
 async function discordSend() {
     eventType = "splatfest";
-    var sqlGetData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `discordSent`.`sentMessage` FROM `splatCal` LEFT JOIN `discordSent` ON `discordSent`.`calId` = `splatCal`.`id` WHERE `event` = ? AND `discordSent`.`sentMessage` IS NULL';
+    var sqlGetData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `win`.`descId`, `descData`.`data` FROM `splatCal` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` LEFT JOIN `win` ON `splatCal`.`id` = `win`.`calId` LEFT JOIN `descData` ON `win`.`descId` = `descData`.`id` WHERE `eventTypes`.`event` = ?';
     sqlconnection.query(sqlGetData, [ eventType ], function (error, events) {
         if (error) throw error;
         if (events && events.length > 0) {
@@ -72,58 +123,24 @@ async function discordSend() {
                                             };
                                         };
                                         descItem.teams = teamsArr;
+                                        descItem.winner = event.data;
                                         description.push(descItem);
                                     };
                                 };
 
                                 let id = event.id;
-                                let title = event.title;
+                                let title = event.title + " winner";
                                 let start = event.startDate;
                                 let end = event.endDate;
 
                                 eventArr.push({ id, title, description, start, end, });
                             };
                             for (const event of eventArr) {
-                                let fields = [];
-                                for (const eventRegion of event.description) {
-                                    eventHead = { name: eventRegion.nameData, value: eventRegion.locationData, inline: false };
-                                    fields.push(eventHead);
-                                    for (const team of eventRegion.teams) {
-                                        eventData = { name: team.data, value: "", inline: true };
-                                        fields.push(eventData);
-                                    }
-                                }
-
-                                const description = "<t:" + Math.floor(new Date(event.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(event.end).getTime() / 1000) + ":f>";
-                                const link = "https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest";
-
-                                let count = 0;
-                                let SplatCalEmbed = []
-                                for (const item of event.description) {
-                                    if (count === 0) {
-                                        SplatCalEmbed.push ({
-                                            color: 0x0099ff,
-                                            title: event.title,
-                                            url: link,
-                                            description: description,
-                                            fields: fields,
-                                            image: {
-                                                url: item.imgData,
-                                            },
-                                        });
-                                    } else {
-                                        SplatCalEmbed.push ({
-                                            url: link,
-                                            image: {
-                                                url: item.imgData,
-                                            },
-                                        });
-                                    };
-
-                                    count ++;
+                                const env = getEnv("splatfestWin");
+                                for (const item of env) {
+                                    msg = createMsg(event, item);
+                                    sendMsg(msg, event.id, item[0]);
                                 };
-
-                                sendMsg(SplatCalEmbed, event.id);
                             };
                         };
                     });
