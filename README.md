@@ -25,7 +25,7 @@ Pulls from database, and sends message to discord server when the winner is anno
 2. Run npm install
 3. Import the database
 4. Create a .env file
-5. Point the web server to the ics folder
+5. Point the web server to the web folder
 6. Start node
 
 ### Docker
@@ -99,7 +99,7 @@ services:
       # copy with suffix to get more channels
       #splatfestWin2=CHANNEL ID,PING ID,PING ID
     volumes:
-      - /var/www/splatCal:/home/node/app # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE - /ics
+      - /var/www/splatCal:/home/node/app # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE - /web
     expose:
       - "8001"
     ports:
@@ -112,6 +112,5 @@ services:
     ports:
       - "8104:80" # first number is port on the server. change this if needed
     volumes:
-      - /var/www/splatCal/ics:/var/www/html # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE + /ics
-
+      - /var/www/splatCal/web:/var/www/html # first location is on the machine running docker. change this if needed. THIS SHOULD ALWAYS BE SAME AS VOLUME IN NODE + /web
 ```
