@@ -66,7 +66,7 @@ function createIcs() {
 
                     console.log("Calendar updated");
 
-                    writeFileSync(`${__dirname}/../../ics/splatfest.ics`, value);
+                    writeFileSync(`${__dirname}/../../web/splatfest.ics`, value);
                 });
             });
         } else {
