@@ -1,28 +1,7 @@
 const { Client, Events, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 
 const sqlConnect = require('../common/sql.js');
-
-const token = process.env.botToken;
-
-// Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-client.once(Events.ClientReady, readyClient => {
-    // When the client is ready, run this code (only once).
-    // The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-    // It makes some properties non-nullable.
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
-sqlconnection = mysql.createConnection(sql);
-
-sqlconnection.connect((err) => {
-    if (err) throw err;
-    console.log('MySQL connected');
-});
-
-// Log in to Discord with your client's token
-client.login(token);
+const discordConnect = require('../common/discord.js');
 
 function getEnv(prefix) {
     const obj = process.env;
@@ -77,11 +56,11 @@ function createMsg(data, discord) {
 
 async function sendMsg(SplatCalData, id, discordChannel) {
     let sqlconnection = await sqlConnect();
-    await until(_ => client.readyTimestamp);
+    await until(_ => discordConnect.readyTimestamp);
     var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 2";
     sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
         if (DiscordSent[0].count == 0) {
-            if (client.channels.cache.get(discordChannel).send( SplatCalData )) {
+            if (discordConnect.channels.cache.get(discordChannel).send( SplatCalData )) {
                 var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `messageType`) VALUES (?, ?, '2')";
                 sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
                     if (error) throw error;

@@ -1,6 +1,7 @@
 const { Client, Events, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 
 const sqlConnect = require('../common/sql.js');
+const discordConnect = require('../common/discord.js');
 
 function getEnv(prefix) {
     const obj = process.env;
@@ -64,11 +65,11 @@ function createMsg(data, discord) {
 
 async function sendMsg(SplatCalData, id, discordChannel) {
     let sqlconnection = await sqlConnect();
-    await until(_ => client.readyTimestamp);
+    await until(_ => discordConnect.readyTimestamp);
     var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 1";
     sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
         if (DiscordSent[0].count == 0) {
-            if (client.channels.cache.get(discordChannel).send( SplatCalData )) {
+            if (discordConnect.channels.cache.get(discordChannel).send( SplatCalData )) {
                 var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `messageType`) VALUES (?, ?, '1')";
                 sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
                     if (error) throw error;
