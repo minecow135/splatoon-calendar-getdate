@@ -1,4 +1,3 @@
-const mysql = require('mysql2');
 const ics = require('ics');
 const { writeFileSync } = require('fs');
 
