@@ -66,7 +66,6 @@ async function getInfo() {
         let ext = path.extname(imgUrl);
         let splatfestName = name.replace(/[^A-Z0-9]+/ig, "_");
         imgName = "splatfest-" + splatfestName + ext;
-        console.log(imgName);
         downloadImage(imgUrl, __dirname + "../../../web/img/src/" + splatfestName + "/", imgName);
 
         let teams = team.textContent.split("vs.").map(s => s.trim());
