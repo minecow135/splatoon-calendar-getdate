@@ -1,34 +1,6 @@
-const mysql = require('mysql2');
 const { Client, Events, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 
-sql = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-};
-
-const token = process.env.botToken;
-
-// Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-client.once(Events.ClientReady, readyClient => {
-    // When the client is ready, run this code (only once).
-    // The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-    // It makes some properties non-nullable.
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
-// Log in to Discord with your client's token
-client.login(token);
-
-sqlconnection = mysql.createConnection(sql);
-
-sqlconnection.connect((err) => {
-    if (err) throw err;
-    console.log('MySQL connected');
-});
+const sqlConnect = require('../common/sql.js');
 
 function getEnv(prefix) {
     const obj = process.env;
@@ -107,6 +79,7 @@ async function sendMsg(SplatCalData, id, discordChannel) {
 };
 
 async function discordSend() {
+    let sqlconnection = await sqlConnect();
     eventType = "splatfest";
     var sqlGetData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate` FROM `splatCal` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` WHERE `eventTypes`.`event` =  ?';
     sqlconnection.query(sqlGetData, [ eventType ], function (error, events) {
@@ -153,9 +126,11 @@ async function discordSend() {
                         };
                     });
                 };
+                sqlconnection.end();
             });
         } else {
             console.log("no new splatfests");
+            sqlconnection.end();
         };
     });
 };

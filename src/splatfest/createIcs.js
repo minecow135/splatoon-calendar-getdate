@@ -2,21 +2,10 @@ const mysql = require('mysql2');
 const ics = require('ics');
 const { writeFileSync } = require('fs');
 
-sql = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-};
+const sqlConnect = require('../common/sql.js');
 
-sqlconnection = mysql.createConnection(sql);
-
-sqlconnection.connect((err) => {
-    if (err) throw err;
-    console.log('MySQL connected');
-});
-
-function createIcs() {
+async function createIcs() {
+    let sqlconnection = await sqlConnect();
     eventType = "splatfest";
     var sqlGetCalData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `splatCal`.`created`, `splatCal`.`uid` FROM `splatCal` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` WHERE `eventTypes`.`event` = ?';
     sqlconnection.query(sqlGetCalData, [ eventType ], function (error, events) {
@@ -67,6 +56,8 @@ function createIcs() {
                     console.log("Calendar updated");
 
                     writeFileSync(`${__dirname}/../../web/splatfest.ics`, value);
+
+                    sqlconnection.end();
                 });
             });
         } else {

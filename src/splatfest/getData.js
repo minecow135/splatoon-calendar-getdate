@@ -1,21 +1,8 @@
 const axios = require('axios');
 const { JSDOM } = require('jsdom');
 const { nanoid } = require('nanoid');
-const mysql = require('mysql2');
 
-sql = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-};
-
-sqlconnection = mysql.createConnection(sql);
-
-sqlconnection.connect((err) => {
-    if (err) throw err;
-    console.log('MySQL connected');
-});
+const sqlConnect = require('../common/sql.js');
 
 async function pullData() {
     webValue = await axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
@@ -76,6 +63,7 @@ async function getInfo() {
 };
 
 async function getData() {
+    let sqlconnection = await sqlConnect();
     let { descData, err } = await getInfo();
 
     if (err.announced) {
@@ -134,6 +122,7 @@ async function getData() {
                         descCount ++;
 
                         locationNum ++;
+                        sqlconnection.end();
                     };
                 });
             } else {
@@ -157,6 +146,7 @@ async function getData() {
 
                         });
                     };
+                    sqlconnection.end();
                 });
             } else {
                 console.log("no winner announced");
