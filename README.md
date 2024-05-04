@@ -20,6 +20,7 @@
 to update run the following commands
 
 ```bash
+git fetch
 git checkout v1.0.3
 npm install
 ```
