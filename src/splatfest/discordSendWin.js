@@ -1,5 +1,3 @@
-const { Client, Events, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
-
 const sqlConnect = require('../common/sql.js');
 const discordConnect = require('../common/discord.js');
 
@@ -25,31 +23,32 @@ function until(conditionFunction) {
 }
 
 function createMsg(data, discord) {
-    let content = "**" + data.title + "**";
-    content += "\n<t:" + Math.floor(new Date(data.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(data.end).getTime() / 1000) + ":f>";
+    let msg = "**" + data.title + "**";
+    msg += "\n<t:" + Math.floor(new Date(data.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(data.end).getTime() / 1000) + ":f>";
     let img = [];
     for (const dataRegion of data.description) {
-        content += "\n\n" + dataRegion.locationData + ":";
-        content += "\n    " + dataRegion.nameData;
-        content += "\n    Winner: " + dataRegion.winner;
-        img.push(new AttachmentBuilder(dataRegion.imgData));
+        msg += "\n\n" + dataRegion.locationData + ":";
+        msg += "\n    " + dataRegion.nameData;
+        msg += "\n    Winner: " + dataRegion.winner;
+        img.push(dataRegion.imgData);
     };
 
     for (let index = 1; index < discord.length; index++) {
         const element = discord[index];
         if (index === 1) {
-            content += "\n\n";
+            msg += "\n\n";
         } else {
-            content += ", ";
+            msg += ", ";
         };
-        content += "<@&" + element + ">";
+        msg += "<@&" + element + ">";
     };
 
-    let msg = {};
-    msg.content = content;
     if (img) {
-        msg.files = img;
-    }
+        msg += "\n";
+        for (const image of img) {
+            msg += "[image](" + image + ") ";
+        };
+    };
 
     return msg;
 }
