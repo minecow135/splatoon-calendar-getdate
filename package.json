@@ -1,11 +1,12 @@
 {
   "name": "splatoon-calendar",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon -e ThisIsForManualRestartOnly",
+    "auto": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -24,7 +25,8 @@
     "ics": "^3.7.2",
     "jsdom": "^24.0.0",
     "mysql2": "^3.9.3",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "eslint": "^9.0.0"

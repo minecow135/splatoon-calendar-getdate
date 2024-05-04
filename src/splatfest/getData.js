@@ -1,21 +1,26 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path')
 const { JSDOM } = require('jsdom');
 const { nanoid } = require('nanoid');
-const mysql = require('mysql2');
 
-sql = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+const sqlConnect = require('../common/sql.js');
+
+async function downloadImage(url, filepath, imgName) {
+    const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream'
+    });
+    return new Promise((resolve, reject) => {
+        if (!fs.existsSync(filepath)){
+            fs.mkdirSync(filepath, { recursive: true });
+        }
+        response.data.pipe(fs.createWriteStream(filepath + imgName))
+            .on('error', reject)
+            .once('close', () => resolve(filepath));
+    });
 };
-
-sqlconnection = mysql.createConnection(sql);
-
-sqlconnection.connect((err) => {
-    if (err) throw err;
-    console.log('MySQL connected');
-});
 
 async function pullData() {
     webValue = await axios.get("https://splatoonwiki.org/w/index.php?title=Main_Page/Splatfest").then(function (response) {
@@ -57,6 +62,12 @@ async function getInfo() {
             return { name, startDate, endDate, winner };
         });
 
+        let imgUrl = imgAll[count].getAttribute("src");
+        let ext = path.extname(imgUrl);
+        let splatfestName = name.replace(/[^A-Z0-9]+/ig, "_");
+        imgName = "splatfest-" + splatfestName + ext;
+        downloadImage(imgUrl, __dirname + "../../../web/img/src/" + splatfestName + "/", imgName);
+
         let teams = team.textContent.split("vs.").map(s => s.trim());
 
         descData.push([
@@ -64,7 +75,7 @@ async function getInfo() {
             placeAll[count].textContent,
             "https://splatoonwiki.org" + teamsLinkAll[count].getAttribute('href'),
             teams,
-            "https:" + imgAll[count].getAttribute('src'),
+            "https://splatcal.awdawd.eu/img/src/" + splatfestName + "/" + imgName,
             startDate,
             endDate,
             winner,
@@ -76,6 +87,7 @@ async function getInfo() {
 };
 
 async function getData() {
+    let sqlconnection = await sqlConnect();
     let { descData, err } = await getInfo();
 
     if (err.announced) {
@@ -86,7 +98,7 @@ async function getData() {
         let created = new Date(Date.now());
         let uid = nanoid() + "@splatfest.awdawd.eu";
 
-        var sqlGetDate = 'SELECT COUNT(id) AS `count` FROM `splatCal` WHERE `startDate` = ?';
+        var sqlGetDate = 'SELECT COUNT(id) AS `count`, `id` FROM `splatCal` WHERE `startDate` = ?';
         sqlconnection.query(sqlGetDate, [ startDate ], function (error, GetCount) {
             if (error) throw error;
             if (GetCount[0].count === 0) {
@@ -134,10 +146,11 @@ async function getData() {
                         descCount ++;
 
                         locationNum ++;
+                        sqlconnection.end();
                     };
                 });
             } else {
-                console.log("already inserted");
+                console.log("already inserted with id " + GetCount[0].id);
             };
         });
     } else {
@@ -157,6 +170,7 @@ async function getData() {
 
                         });
                     };
+                    sqlconnection.end();
                 });
             } else {
                 console.log("no winner announced");

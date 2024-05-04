@@ -349,14 +349,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# Annet
-markdown-cheat-sheet.md
-package-lock.json
-db.php
-db.js
-discordconfig.php
-discordconfig.js
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -382,4 +374,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Other
+markdown-cheat-sheet.md
+package-lock.json
+
+# spesific for this project
 *.ics
+web/img/src/

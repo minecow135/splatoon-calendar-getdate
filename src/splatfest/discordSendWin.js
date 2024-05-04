@@ -1,34 +1,5 @@
-const mysql = require('mysql2');
-const { Client, Events, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
-
-sql = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-};
-
-const token = process.env.botToken;
-
-// Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-client.once(Events.ClientReady, readyClient => {
-    // When the client is ready, run this code (only once).
-    // The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-    // It makes some properties non-nullable.
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
-sqlconnection = mysql.createConnection(sql);
-
-sqlconnection.connect((err) => {
-    if (err) throw err;
-    console.log('MySQL connected');
-});
-
-// Log in to Discord with your client's token
-client.login(token);
+const sqlConnect = require('../common/sql.js');
+const discordConnect = require('../common/discord.js');
 
 function getEnv(prefix) {
     const obj = process.env;
@@ -52,45 +23,48 @@ function until(conditionFunction) {
 }
 
 function createMsg(data, discord) {
-    let content = "**" + data.title + "**";
-    content += "\n<t:" + Math.floor(new Date(data.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(data.end).getTime() / 1000) + ":f>";
+    let msg = "**" + data.title + "**";
+    msg += "\n<t:" + Math.floor(new Date(data.start).getTime() / 1000) + ":f> - <t:" + Math.floor(new Date(data.end).getTime() / 1000) + ":f>";
     let img = [];
     for (const dataRegion of data.description) {
-        content += "\n\n" + dataRegion.locationData + ":";
-        content += "\n    " + dataRegion.nameData;
-        content += "\n    Winner: " + dataRegion.winner;
-        img.push(new AttachmentBuilder(dataRegion.imgData));
+        msg += "\n\n" + dataRegion.locationData + ":";
+        msg += "\n    " + dataRegion.nameData;
+        msg += "\n    Winner: " + dataRegion.winner;
+        img.push(dataRegion.imgData);
     };
 
     for (let index = 1; index < discord.length; index++) {
         const element = discord[index];
         if (index === 1) {
-            content += "\n\n";
+            msg += "\n\n";
         } else {
-            content += ", ";
+            msg += ", ";
         };
-        content += "<@&" + element + ">";
+        msg += "<@&" + element + ">";
     };
 
-    let msg = {};
-    msg.content = content;
     if (img) {
-        msg.files = img;
-    }
+        msg += "\n";
+        for (const image of img) {
+            msg += "[image](" + image + ") ";
+        };
+    };
 
     return msg;
 }
 
 async function sendMsg(SplatCalData, id, discordChannel) {
-    await until(_ => client.readyTimestamp);
+    let sqlconnection = await sqlConnect();
+    await until(_ => discordConnect.readyTimestamp);
     var sqlGetCalData = "SELECT COUNT(`id`) AS `count` FROM `discordSent` WHERE `channelId` = ? AND `calId` = ? AND `messageType` = 2";
     sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, DiscordSent ) {
         if (DiscordSent[0].count == 0) {
-            if (client.channels.cache.get(discordChannel).send( SplatCalData )) {
+            if (discordConnect.channels.cache.get(discordChannel).send( SplatCalData )) {
                 var sqlGetCalData = "INSERT INTO `discordSent` (`channelId`, `calId`, `messageType`) VALUES (?, ?, '2')";
                 sqlconnection.query(sqlGetCalData, [ discordChannel, id ], function (error, events) {
                     if (error) throw error;
                     console.log("Win message sent!", id, "in:", discordChannel);
+                    sqlconnection.end();
                 });
             };
         };
@@ -98,8 +72,9 @@ async function sendMsg(SplatCalData, id, discordChannel) {
 };
 
 async function discordSend() {
+    let sqlconnection = await sqlConnect();
     eventType = "splatfest";
-    var sqlGetData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `win`.`descId`, `descData`.`data` FROM `splatCal` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` LEFT JOIN `win` ON `splatCal`.`id` = `win`.`calId` LEFT JOIN `descData` ON `win`.`descId` = `descData`.`id` WHERE `eventTypes`.`event` = ?';
+    var sqlGetData = 'SELECT `splatCal`.`id`, `splatCal`.`title`, `splatCal`.`startDate`, `splatCal`.`endDate`, `win`.`descId`, `descData`.`data` FROM `splatCal` LEFT JOIN `eventTypes` ON `splatCal`.`eventId` = `eventTypes`.`id` LEFT JOIN `win` ON `splatCal`.`id` = `win`.`calId` LEFT JOIN `descData` ON `win`.`descId` = `descData`.`id` WHERE `eventTypes`.`event` = ? AND `win`.`descId` IS NOT NULL';
     sqlconnection.query(sqlGetData, [ eventType ], function (error, events) {
         if (error) throw error;
         if (events && events.length > 0) {
@@ -145,9 +120,11 @@ async function discordSend() {
                         };
                     });
                 };
+                sqlconnection.end();
             });
         } else {
             console.log("no new splatfests");
+            sqlconnection.end();
         };
     });
 };
